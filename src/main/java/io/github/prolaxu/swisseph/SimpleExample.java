@@ -1,91 +1,126 @@
-/*
- * SimpleExample.java
- *
- * Example usage of Swiss Ephemeris Java wrapper
- * Copyright (C) 2023 Prolaxu. All rights reserved.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- *
- * For more information about this project, visit:
- * https://github.com/prolaxu/swisseph-java
- */
-
 package io.github.prolaxu.swisseph;
 
-/**
- * A simple example demonstrating basic usage of the Swiss Ephemeris Java wrapper.
- * 
- * <p>This example shows how to:
- * <ul>
- *   <li>Load the native library</li>
- *   <li>Set the ephemeris path</li>
- *   <li>Calculate planetary positions</li>
- *   <li>Handle errors</li>
- * </ul>
- * 
- * @version 2.10.03
- * @see <a href="https://github.com/prolaxu/swisseph-java">GitHub Repository</a>
- */
 public class SimpleExample {
-    /**
-     * Main method demonstrating basic Swiss Ephemeris functionality.
-     * 
-     * @param args Command line arguments (not used)
-     */
+    // Planet names for display
+    private static final String[] PLANET_NAMES = {
+        "Sun", "Moon", "Mercury", "Venus", "Mars",
+        "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto",
+        "Mean Node", "True Node", "Mean Apogee", "Osc. Apogee", "Earth"
+    };
+    
+    // House system to use (P = Placidus, K = Koch, etc.)
+    private static final char HSYS = 'P';
+    
+    // Kathmandu coordinates (27.7172° N, 85.3240° E)
+    private static final double KATHMANDU_LAT = 27.7172;
+    private static final double KATHMANDU_LON = 85.3240;
+    
     public static void main(String[] args) {
         try {
             System.loadLibrary("swisseph");
-            System.out.println("Native library loaded successfully.");
+            System.out.println("Native library loaded successfully.\n");
         } catch (UnsatisfiedLinkError e) {
             System.err.println("Failed to load native library: " + e.getMessage());
             System.err.println("Please ensure `libswisseph.so` is in your `java.library.path`");
             return;
         }
 
-        // Ephemeris path
-        Swisseph.swe_set_ephe_path("/home/laxu/Documents/tests/swisseph-java-latest/ephe");
+        // Set ephemeris path and sidereal mode
+        Swisseph.swe_set_ephe_path("ephe");
         Swisseph.swe_set_sid_mode(Swisseph.SE_SIDM_LAHIRI, 0.0, 0.0);
 
-        // Date & Time in IST (UTC+5:30)
-        int year = 2025, month = 1, day = 1, hour = 12, minute = 0;
+        // Birth details: 2025-01-01 05:00:00 AM in Kathmandu (UTC+5:45)
+        int year = 2025, month = 1, day = 1, hour = 5, minute = 0;
         double second = 0.0;
-        double tzOffset = 5.5; // UTC+05:30
+        double tzOffset = 5.75; // UTC+5:45 for Nepal
 
-        // Convert IST to UTC for Julian Day calculation
-        double utcHour = hour - tzOffset; // 12:00 IST = 6.5 UTC
-        double jd = Swisseph.swe_julday(year, month, day, utcHour, Swisseph.SE_GREG_CAL);
-
-        // Optionally, use swe_utc_to_jd if needed for timezone-aware conversion
-        // double[] dret = new double[2];
-        // int ret = Swisseph.swe_utc_to_jd(year, month, day, hour, minute, second, Swisseph.SE_GREG_CAL, dret);
-        // double jd = dret[1]; // UT Julian Day
-
-        // Planet: Sun
-        int ipl = Swisseph.SE_SUN;
-        int iflag = Swisseph.SEFLG_SPEED;
-        double[] xx = new double[6];
-
-        int ret = Swisseph.swe_calc_ut(jd, ipl, iflag, xx);
-
-        if (ret < 0) {
-            System.err.println("Error calculating Sun's position: " + Swisseph.getLastError());
-        } else {
-            System.out.printf("Sun's Longitude on Jan 1, 2025, 12:00 IST: %.6f°\n", xx[0]);
+        // Convert local time to UTC
+        double utcHour = hour - tzOffset;
+        if (utcHour < 0) {
+            utcHour += 24;
+            // Adjust day if needed (not necessary for this specific date)
         }
 
+        // Calculate Julian Day
+        double jd = Swisseph.swe_julday(year, month, day, utcHour, Swisseph.SE_GREG_CAL);
+        
+        // Calculate houses (cusp and house positions)
+        double[] cusps = new double[13];
+        double[] ascmc = new double[10];
+        int result = Swisseph.swe_houses(jd, KATHMANDU_LAT, KATHMANDU_LON, HSYS, cusps, ascmc);
+        
+        if (result < 0) {
+            System.err.println("Error calculating houses: " + Swisseph.getLastError());
+            return;
+        }
+
+
+        // Print birth chart header
+        System.out.println("========================================");
+        System.out.println("        BIRTH CHART CALCULATION         ");
+        System.out.println("========================================");
+        System.out.printf("Date   : %04d-%02d-%02d%n", year, month, day);
+        System.out.printf("Time   : %02d:%02d NPT (UTC+5:45)%n", hour, minute);
+        System.out.printf("Place  : Kathmandu, Nepal (%.4f°N, %.4f°E)%n", KATHMANDU_LAT, KATHMANDU_LON);
+        System.out.println("Ayanamsa: Lahiri - " + Swisseph.swe_get_ayanamsa_ut(jd));
+        System.out.println("========================================\n");
+
+        // Calculate and print planetary positions
+        System.out.println("PLANETARY POSITIONS");
+        System.out.println("------------------");
+        
+        int[] planets = {
+            Swisseph.SE_SUN, Swisseph.SE_MOON, Swisseph.SE_MERCURY, Swisseph.SE_VENUS,
+            Swisseph.SE_MARS, Swisseph.SE_JUPITER, Swisseph.SE_SATURN, Swisseph.SE_URANUS,
+            Swisseph.SE_NEPTUNE, Swisseph.SE_PLUTO, Swisseph.SE_MEAN_NODE
+        };
+        
+        double[] xx = new double[6];
+        int iflag = Swisseph.SEFLG_SWIEPH | Swisseph.SEFLG_SPEED;
+        
+        for (int i = 0; i < planets.length; i++) {
+            int ret = Swisseph.swe_calc_ut(jd, planets[i], iflag, xx);
+            if (ret >= 0) {
+                String sign = getZodiacSign(xx[0]);
+                System.out.printf("%-10s: %9.6f° (%s) %s%n", 
+                    PLANET_NAMES[i < PLANET_NAMES.length ? i : i - PLANET_NAMES.length],
+                    xx[0], sign, xx[3] >= 0 ? "D" : "R");
+            }
+        }
+        
+        // Print houses (cusp positions)
+        System.out.println("\nHOUSES (Placidus)");
+        System.out.println("----------------");
+        for (int i = 1; i <= 12; i++) {
+            String sign = getZodiacSign(cusps[i]);
+            System.out.printf("House %2d: %9.6f° (%s)%n", i, cusps[i], sign);
+        }
+        
+        // Print Ascendant and MC
+        System.out.println("\nANGLES");
+        System.out.println("------");
+        System.out.printf("Ascendant (AC): %9.6f° (%s)%n", 
+            ascmc[0], getZodiacSign(ascmc[0]));
+        System.out.printf("MC           : %9.6f° (%s)%n", 
+            ascmc[1], getZodiacSign(ascmc[1]));
+            
+        // Print Ayanamsa
         double ayanamsa = Swisseph.swe_get_ayanamsa_ut(jd);
-        System.out.printf("Ayanamsa UT on Jan 1, 2025: %.6f°\n", ayanamsa);
+        System.out.printf("\nAyanamsa: %.6f° (Lahiri)\n", ayanamsa);
+        
+        // Clean up
         Swisseph.swe_close();
+    }
+    
+    // Helper method to get zodiac sign from longitude
+    private static String getZodiacSign(double longitude) {
+        String[] signs = {"Ari", "Tau", "Gem", "Can", "Leo", "Vir",
+                         "Lib", "Sco", "Sag", "Cap", "Aqu", "Pis"};
+        int sign_idx = ((int)longitude / 30) % 12;
+        double pos_in_sign = longitude % 30;
+        int degrees = (int)pos_in_sign;
+        double minutes = (pos_in_sign - degrees) * 60;
+        return String.format("%d°%02d' %s", 
+            degrees, (int)minutes, signs[sign_idx]);
     }
 }
