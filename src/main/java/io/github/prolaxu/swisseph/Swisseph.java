@@ -1,43 +1,20 @@
-/*
- * @(#)Swisseph.java
- *
- * Swiss Ephemeris JNI Wrapper
- * Copyright (C) 2023 Prolaxu. All rights reserved.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- *
- * For more information about this project, visit:
- * https://github.com/prolaxu/swisseph-java
- */
-
 package io.github.prolaxu.swisseph;
 
 /**
- * Main class providing JNI bindings to the Swiss Ephemeris C library.
+ * JNI wrapper for the Swiss Ephemeris library, providing astronomical calculations.
  * 
- * <p>This class serves as the primary interface between Java applications and the Swiss Ephemeris
- * astronomical calculation library. It provides access to high-precision planetary positions,
- * house calculations, eclipse predictions, and other astronomical computations.</p>
+ * <p>This class provides Java bindings to the Swiss Ephemeris C library, enabling high-precision
+ * astrological and astronomical calculations including planetary positions, house systems,
+ * eclipse and occultation computations, and other celestial phenomena.</p>
  * 
- * <p><b>Note:</b> This is a JNI wrapper around the Swiss Ephemeris C library. The native
- * library must be properly installed and accessible in the system library path.</p>
- *
+ * <p>For more information, see the <a href="https://www.astro.com/swisseph/">Swiss Ephemeris</a>
+ * documentation.</p>
+ * 
  * @version 2.10.03
- * @see <a href="https://www.astro.com/swisseph/">Swiss Ephemeris</a>
- * @see <a href="https://github.com/prolaxu/swisseph-java">GitHub Repository</a>
+ * @since 1.0
  */
 public class Swisseph {
+    // Planetary body constants
     public static final int SE_SUN = 0;
     public static final int SE_MOON = 1;
     public static final int SE_MERCURY = 2;
@@ -62,6 +39,7 @@ public class Swisseph {
     public static final int SE_INTP_APOG = 21;
     public static final int SE_INTP_PERG = 22;
 
+    // Ephemeris flag constants
     public static final int SEFLG_JPLEPH = 1;
     public static final int SEFLG_SWIEPH = 2;
     public static final int SEFLG_MOSEPH = 4;
@@ -79,10 +57,11 @@ public class Swisseph {
     public static final int SEFLG_TOPOCTR = 32768;
     public static final int SEFLG_SIDEREAL = 65536;
 
-    // Additional constants from swephexp.h
+    // Calendar system constants
     public static final int SE_JUL_CAL = 0;
     public static final int SE_GREG_CAL = 1;
 
+    // Sidereal mode (ayanamsa) constants
     public static final int SE_SIDM_FAGAN_BRADLEY = 0;
     public static final int SE_SIDM_LAHIRI = 1;
     public static final int SE_SIDM_DELUCE = 2;
@@ -162,77 +141,567 @@ public class Swisseph {
     public static final int SE_EVENING_FIRST = 3;
     public static final int SE_MORNING_LAST = 4;
 
-    public static native String getLastError(); // New method to retrieve error messages
+    /**
+     * Returns the last error message from the Swiss Ephemeris library.
+     * 
+     * @return the last error message as a String, or null if no error occurred
+     */
+    public static native String getLastError();
 
-    public static native int swe_calc_ut(double tjd_ut, int ipl, int iflag, double[] xx); // Removed char[] serr
+    /**
+     * Calculates planetary positions for a given Julian day in Universal Time (UT).
+     * 
+     * @param tjd_ut Julian day in Universal Time
+     * @param ipl    planet number (use SE_* constants)
+     * @param iflag  calculation flags (bit flags using SEFLG_* constants)
+     * @param xx     output array that will contain the calculated position
+     * @return       error status (0 = OK, negative values indicate errors)
+     */
+    public static native int swe_calc_ut(double tjd_ut, int ipl, int iflag, double[] xx); 
 
+    /**
+     * Closes the Swiss Ephemeris library and frees resources.
+     * Should be called when the library is no longer needed.
+     */
     public static native void swe_close();
+    
+    /**
+     * Sets the path to the ephemeris files.
+     * 
+     * @param path the directory path containing the ephemeris files
+     */
     public static native void swe_set_ephe_path(String path);
+    
+    /**
+     * Sets the JPL ephemeris file to be used for calculations.
+     * 
+     * @param fname the filename of the JPL ephemeris file
+     */
     public static native void swe_set_jpl_file(String fname);
-    public static native String swe_get_planet_name(int ipl); // Removed char[] spname
+    /**
+     * Returns the name of a planet or point based on its number.
+     * 
+     * @param ipl planet number (use SE_* constants)
+     * @return the name of the planet as a String
+     */
+    public static native String swe_get_planet_name(int ipl); 
+    /**
+     * Sets the observer's geographic location for topocentric calculations.
+     * 
+     * @param geolon geographic longitude in degrees (east positive, west negative)
+     * @param geolat geographic latitude in degrees (north positive, south negative)
+     * @param geoalt altitude above sea level in meters
+     */
     public static native void swe_set_topo(double geolon, double geolat, double geoalt);
+    
+    /**
+     * Sets the sidereal mode (ayanamsa) for sidereal calculations.
+     * 
+     * @param sid_mode sidereal mode (use SE_SIDM_* constants)
+     * @param t0 reference date in Julian days
+     * @param ayan_t0 initial ayanamsa value at t0
+     */
     public static native void swe_set_sid_mode(int sid_mode, double t0, double ayan_t0);
+    /**
+     * Calculates the ayanamsa (sidereal zodiac offset) for a given ephemeris time.
+     * 
+     * @param tjd_et Julian day in Ephemeris/DeltaT time
+     * @return ayanamsa value in degrees
+     */
     public static native double swe_get_ayanamsa(double tjd_et);
+    
+    /**
+     * Calculates the ayanamsa (sidereal zodiac offset) for a given Universal Time.
+     * 
+     * @param tjd_ut Julian day in Universal Time
+     * @return ayanamsa value in degrees
+     */
     public static native double swe_get_ayanamsa_ut(double tjd_ut);
+    
+    /**
+     * Returns the name of the ayanamsa method.
+     * 
+     * @param isidmode sidereal mode (use SE_SIDM_* constants)
+     * @return the name of the ayanamsa method as a String
+     */
     public static native String swe_get_ayanamsa_name(int isidmode);
+    /**
+     * Retrieves information about the currently loaded ephemeris file.
+     * 
+     * @param ifno     ephemeris file number (0 = first file)
+     * @param tfstart  output array that will contain the start Julian day of the file
+     * @param tfend    output array that will contain the end Julian day of the file
+     * @param denum    output array that will contain the ephemeris number (DE number)
+     * @return         the ephemeris file path, or null if no file is loaded
+     */
     public static native String swe_get_current_file_data(int ifno, double[] tfstart, double[] tfend, int[] denum);
-    public static native int swe_fixstar(String star, double tjd, int iflag, double[] xx); // Changed char[] star to String, removed char[] serr
-    public static native int swe_fixstar_ut(String star, double tjd_ut, int iflag, double[] xx); // Changed char[] star to String, removed char[] serr
-    public static native int swe_fixstar_mag(String star, double[] mag); // Changed char[] star to String, removed char[] serr
-    public static native int swe_fixstar2(String star, double tjd, int iflag, double[] xx); // Changed char[] star to String, removed char[] serr
-    public static native int swe_fixstar2_ut(String star, double tjd_ut, int iflag, double[] xx); // Changed char[] star to String, removed char[] serr
-    public static native int swe_fixstar2_mag(String star, double[] mag); // Changed char[] star to String, removed char[] serr
-    public static native int swe_calc_pctr(double tjd, int ipl, int iplctr, int iflag, double[] xxret); // Removed char[] serr
-    public static native double swe_solcross(double x2cross, double jd_et, int flag); // Removed char[] serr
-    public static native double swe_solcross_ut(double x2cross, double jd_ut, int flag); // Removed char[] serr
-    public static native double swe_mooncross(double x2cross, double jd_et, int flag); // Removed char[] serr
-    public static native double swe_mooncross_ut(double x2cross, double jd_ut, int flag); // Removed char[] serr
-    public static native double swe_mooncross_node(double jd_et, int flag, double[] xlon, double[] xlat); // Removed char[] serr
-    public static native double swe_mooncross_node_ut(double jd_ut, int flag, double[] xlon, double[] xlat); // Removed char[] serr
-    public static native int swe_helio_cross(int ipl, double x2cross, double jd_et, int iflag, int dir, double[] jd_cross); // Removed char[] serr
-    public static native int swe_helio_cross_ut(int ipl, double x2cross, double jd_ut, int iflag, int dir, double[] jd_cross); // Removed char[] serr
-    public static native int swe_nod_aps(double tjd_et, int ipl, int iflag, int method, double[] xnasc, double[] xndsc, double[] xperi, double[] xaphe); // Removed char[] serr
-    public static native int swe_nod_aps_ut(double tjd_ut, int ipl, int iflag, int method, double[] xnasc, double[] xndsc, double[] xperi, double[] xaphe); // Removed char[] serr
-    public static native int swe_get_orbital_elements(double tjd_et, int ipl, int iflag, double[] dret); // Removed char[] serr
-    public static native int swe_orbit_max_min_true_distance(double tjd_et, int ipl, int iflag, double[] dmax, double[] dmin, double[] dtrue); // Removed char[] serr
-    public static native int swe_pheno(double tjd, int ipl, int iflag, double[] attr); // Removed char[] serr
-    public static native int swe_pheno_ut(double tjd_ut, int ipl, int iflag, double[] attr); // Removed char[] serr
+    /**
+     * Calculates the position of a fixed star for a given ephemeris time.
+     * 
+     * @param star  the name of the fixed star (e.g., "Aldebaran")
+     * @param tjd   Julian day in Ephemeris/DeltaT time
+     * @param iflag calculation flags (bit flags using SEFLG_* constants)
+     * @param xx    output array that will contain the calculated position
+     * @return      error status (0 = OK, negative values indicate errors)
+     */
+    public static native int swe_fixstar(String star, double tjd, int iflag, double[] xx);
+    
+    /**
+     * Calculates the position of a fixed star for a given Universal Time.
+     * 
+     * @param star   the name of the fixed star (e.g., "Aldebaran")
+     * @param tjd_ut Julian day in Universal Time
+     * @param iflag  calculation flags (bit flags using SEFLG_* constants)
+     * @param xx     output array that will contain the calculated position
+     * @return       error status (0 = OK, negative values indicate errors)
+     */
+    public static native int swe_fixstar_ut(String star, double tjd_ut, int iflag, double[] xx); 
+    /**
+     * Retrieves the magnitude of a fixed star.
+     * 
+     * @param star the name of the fixed star (e.g., "Aldebaran")
+     * @param mag  output array that will contain the star's magnitude
+     * @return     error status (0 = OK, negative values indicate errors)
+     */
+    public static native int swe_fixstar_mag(String star, double[] mag); 
+    /**
+     * Calculates the position of a fixed star for a given ephemeris time (extended version).
+     * 
+     * @param star  the name of the fixed star (e.g., "Aldebaran")
+     * @param tjd   Julian day in Ephemeris/DeltaT time
+     * @param iflag calculation flags (bit flags using SEFLG_* constants)
+     * @param xx    output array that will contain the calculated position
+     * @return      error status (0 = OK, negative values indicate errors)
+     */
+    public static native int swe_fixstar2(String star, double tjd, int iflag, double[] xx);
+    
+    /**
+     * Calculates the position of a fixed star for a given Universal Time (extended version).
+     * 
+     * @param star   the name of the fixed star (e.g., "Aldebaran")
+     * @param tjd_ut Julian day in Universal Time
+     * @param iflag  calculation flags (bit flags using SEFLG_* constants)
+     * @param xx     output array that will contain the calculated position
+     * @return       error status (0 = OK, negative values indicate errors)
+     */
+    public static native int swe_fixstar2_ut(String star, double tjd_ut, int iflag, double[] xx);
+    
+    /**
+     * Retrieves the magnitude of a fixed star (extended version).
+     * 
+     * @param star the name of the fixed star (e.g., "Aldebaran")
+     * @param mag  output array that will contain the star's magnitude
+     * @return     error status (0 = OK, negative values indicate errors)
+     */
+    public static native int swe_fixstar2_mag(String star, double[] mag); 
+    public static native int swe_calc_pctr(double tjd, int ipl, int iplctr, int iflag, double[] xxret); 
+    public static native double swe_solcross(double x2cross, double jd_et, int flag); 
+    public static native double swe_solcross_ut(double x2cross, double jd_ut, int flag); 
+    public static native double swe_mooncross(double x2cross, double jd_et, int flag); 
+    public static native double swe_mooncross_ut(double x2cross, double jd_ut, int flag); 
+    public static native double swe_mooncross_node(double jd_et, int flag, double[] xlon, double[] xlat); 
+    public static native double swe_mooncross_node_ut(double jd_ut, int flag, double[] xlon, double[] xlat); 
+    public static native int swe_helio_cross(int ipl, double x2cross, double jd_et, int iflag, int dir, double[] jd_cross); 
+    public static native int swe_helio_cross_ut(int ipl, double x2cross, double jd_ut, int iflag, int dir, double[] jd_cross); 
+    public static native int swe_nod_aps(double tjd_et, int ipl, int iflag, int method, double[] xnasc, double[] xndsc, double[] xperi, double[] xaphe); 
+    public static native int swe_nod_aps_ut(double tjd_ut, int ipl, int iflag, int method, double[] xnasc, double[] xndsc, double[] xperi, double[] xaphe); 
+    public static native int swe_get_orbital_elements(double tjd_et, int ipl, int iflag, double[] dret); 
+    public static native int swe_orbit_max_min_true_distance(double tjd_et, int ipl, int iflag, double[] dmax, double[] dmin, double[] dtrue); 
+    public static native int swe_pheno(double tjd, int ipl, int iflag, double[] attr); 
+    public static native int swe_pheno_ut(double tjd_ut, int ipl, int iflag, double[] attr); 
+    /**
+     * Calculates the altitude and azimuth of a celestial body for a given time and location.
+     * 
+     * @param tjd_ut  Julian day in Universal Time
+     * @param calc_flag calculation flags (bit flags using SEFLG_* constants)
+     * @param geopos  geographic position [longitude, latitude]
+     * @param atpress atmospheric pressure in mbar
+     * @param attemp  atmospheric temperature in degrees Celsius
+     * @param xin     input array containing the celestial body's position
+     * @param xaz     output array that will contain the calculated altitude and azimuth
+     */
     public static native void swe_azalt(double tjd_ut, int calc_flag, double[] geopos, double atpress, double attemp, double[] xin, double[] xaz);
+    /**
+     * Calculates the altitude and azimuth of a celestial body for a given time and location (reverse calculation).
+     * 
+     * @param tjd_ut  Julian day in Universal Time
+     * @param calc_flag calculation flags (bit flags using SEFLG_* constants)
+     * @param geopos  geographic position [longitude, latitude]
+     * @param xin     input array containing the celestial body's position
+     * @param xout    output array that will contain the calculated altitude and azimuth
+     */
     public static native void swe_azalt_rev(double tjd_ut, int calc_flag, double[] geopos, double[] xin, double[] xout);
-    public static native int swe_rise_trans_true_hor(double tjd_ut, int ipl, String starname, int epheflag, int rsmi, double[] geopos, double atpress, double attemp, double horhgt, double[] tret); // Changed char[] starname to String, removed char[] serr
-    public static native int swe_rise_trans(double tjd_ut, int ipl, String starname, int epheflag, int rsmi, double[] geopos, double atpress, double attemp, double[] tret); // Changed char[] starname to String, removed char[] serr
-    public static native int swe_gauquelin_sector(double t_ut, int ipl, String starname, int iflag, int imeth, double[] geopos, double atpress, double attemp, double[] dgsect); // Changed char[] starname to String, removed char[] serr
-    public static native int swe_sol_eclipse_where(double tjd, int ifl, double[] geopos, double[] attr); // Removed char[] serr
-    public static native int swe_lun_occult_where(double tjd, int ipl, String starname, int ifl, double[] geopos, double[] attr); // Changed char[] starname to String, removed char[] serr
-    public static native int swe_sol_eclipse_how(double tjd, int ifl, double[] geopos, double[] attr); // Removed char[] serr
-    public static native int swe_sol_eclipse_when_loc(double tjd_start, int ifl, double[] geopos, double[] tret, double[] attr, int backward); // Removed char[] serr
-    public static native int swe_lun_occult_when_loc(double tjd_start, int ipl, String starname, int ifl, double[] geopos, double[] tret, double[] attr, int backward); // Changed char[] starname to String, removed char[] serr
-    public static native int swe_sol_eclipse_when_glob(double tjd_start, int ifl, int ifltype, double[] tret, int backward); // Removed char[] serr
-    public static native int swe_lun_occult_when_glob(double tjd_start, int ipl, String starname, int ifl, int ifltype, double[] tret, int backward); // Changed char[] starname to String, removed char[] serr
-    public static native int swe_lun_eclipse_how(double tjd_ut, int ifl, double[] geopos, double[] attr); // Removed char[] serr
-    public static native int swe_lun_eclipse_when(double tjd_start, int ifl, int ifltype, double[] tret, int backward); // Removed char[] serr
-    public static native int swe_lun_eclipse_when_loc(double tjd_start, int ifl, double[] geopos, double[] tret, double[] attr, int backward); // Removed char[] serr
-    public static native int swe_heliacal_ut(double tjdstart_ut, double[] geopos, double[] datm, double[] dobs, String ObjectName, int TypeEvent, int iflag, double[] dret); // Changed char[] ObjectName to String, removed char[] serr
-    public static native int swe_heliacal_pheno_ut(double tjd_ut, double[] geopos, double[] datm, double[] dobs, String ObjectName, int TypeEvent, int helflag, double[] darr); // Changed char[] ObjectName to String, removed char[] serr
-    public static native int swe_vis_limit_mag(double tjdut, double[] geopos, double[] datm, double[] dobs, String ObjectName, int helflag, double[] dret); // Changed char[] ObjectName to String, removed char[] serr
-    public static native int swe_heliacal_angle(double tjdut, double[] dgeo, double[] datm, double[] dobs, int helflag, double mag, double azi_obj, double azi_sun, double azi_moon, double alt_moon, double[] dret); // Removed char[] serr
-    public static native int swe_topo_arcus_visionis(double tjdut, double[] dgeo, double[] datm, double[] dobs, int helflag, double mag, double azi_obj, double alt_obj, double azi_sun, double azi_moon, double alt_moon, double[] dret); // Removed char[] serr
-    public static native void swe_set_astro_models(String samod, int iflag); // Changed char[] samod to String
-    public static native String swe_get_astro_models(String samod, int iflag); // Changed to return String, removed sdet parameter
+    /**
+     * Calculates the time of rising or setting of a celestial body for a given date and location.
+     * 
+     * @param tjd_ut  Julian day in Universal Time
+     * @param ipl     planet number (use SE_* constants)
+     * @param starname name of the star (for fixed stars)
+     * @param epheflag ephemeris flag (use SEFLG_* constants)
+     * @param rsmi    rise/set flag (SE_CALC_RISE or SE_CALC_SET)
+     * @param geopos  geographic position [longitude, latitude]
+     * @param atpress atmospheric pressure in mbar
+     * @param attemp  atmospheric temperature in degrees Celsius
+     * @param horhgt  horizon height above sea level in meters
+     * @param tret    output array that will contain the calculated time
+     * @return        error status (0 = OK, negative values indicate errors)
+     */
+    public static native int swe_rise_trans_true_hor(double tjd_ut, int ipl, String starname, int epheflag, int rsmi, double[] geopos, double atpress, double attemp, double horhgt, double[] tret); 
+    /**
+     * Calculates the time of rising or setting of a celestial body for a given date and location.
+     * 
+     * @param tjd_ut  Julian day in Universal Time
+     * @param ipl     planet number (use SE_* constants)
+     * @param starname name of the star (for fixed stars)
+     * @param epheflag ephemeris flag (use SEFLG_* constants)
+     * @param rsmi    rise/set flag (SE_CALC_RISE or SE_CALC_SET)
+     * @param geopos  geographic position [longitude, latitude]
+     * @param atpress atmospheric pressure in mbar
+     * @param attemp  atmospheric temperature in degrees Celsius
+     * @param tret    output array that will contain the calculated time
+     * @return        error status (0 = OK, negative values indicate errors)
+     */
+    public static native int swe_rise_trans(double tjd_ut, int ipl, String starname, int epheflag, int rsmi, double[] geopos, double atpress, double attemp, double[] tret); 
+    /**
+     * Calculates the Gauquelin sector of a celestial body for a given date and location.
+     * 
+     * @param t_ut    Julian day in Universal Time
+     * @param ipl     planet number (use SE_* constants)
+     * @param starname name of the star (for fixed stars)
+     * @param iflag   calculation flags (bit flags using SEFLG_* constants)
+     * @param imeth   method flag (use SE_GAUQUELIN_METHOD_* constants)
+     * @param geopos  geographic position [longitude, latitude]
+     * @param atpress atmospheric pressure in mbar
+     * @param attemp  atmospheric temperature in degrees Celsius
+     * @param dgsect  output array that will contain the calculated Gauquelin sector
+     * @return        error status (0 = OK, negative values indicate errors)
+     */
+    public static native int swe_gauquelin_sector(double t_ut, int ipl, String starname, int iflag, int imeth, double[] geopos, double atpress, double attemp, double[] dgsect); 
+    /**
+     * Calculates the geographic position where a solar eclipse is central or maximal.
+     * 
+     * @param tjd     Julian day in Ephemeris/DeltaT time
+     * @param ifl     calculation flags (bit flags using SEFLG_* constants)
+     * @param geopos  output array that will contain the geographic position [longitude, latitude]
+     * @param attr    output array that will contain additional attributes
+     * @return        error status (0 = OK, negative values indicate errors)
+     */
+    public static native int swe_sol_eclipse_where(double tjd, int ifl, double[] geopos, double[] attr);
+    
+    /**
+     * Calculates the geographic position where a lunar occultation is central or maximal.
+     * 
+     * @param tjd      Julian day in Ephemeris/DeltaT time
+     * @param ipl      planet number of occulting body (use SE_* constants)
+     * @param starname name of the occulted star
+     * @param ifl      calculation flags (bit flags using SEFLG_* constants)
+     * @param geopos   output array that will contain the geographic position [longitude, latitude]
+     * @param attr     output array that will contain additional attributes
+     * @return         error status (0 = OK, negative values indicate errors)
+     */
+    public static native int swe_lun_occult_where(double tjd, int ipl, String starname, int ifl, double[] geopos, double[] attr); 
+    /**
+     * Calculates attributes of a solar eclipse for a given time and location.
+     * 
+     * @param tjd     Julian day in Ephemeris/DeltaT time
+     * @param ifl     calculation flags (bit flags using SEFLG_* constants)
+     * @param geopos  geographic position [longitude, latitude]
+     * @param attr    output array that will contain the eclipse attributes
+     * @return        error status (0 = OK, negative values indicate errors)
+     */
+    public static native int swe_sol_eclipse_how(double tjd, int ifl, double[] geopos, double[] attr);
+    
+    /**
+     * Finds the next solar eclipse for a specific location.
+     * 
+     * @param tjd_start  start time for search (Julian day in Ephemeris/DeltaT time)
+     * @param ifl        calculation flags (bit flags using SEFLG_* constants)
+     * @param geopos     geographic position [longitude, latitude]
+     * @param tret       output array that will contain the eclipse times
+     * @param attr       output array that will contain the eclipse attributes
+     * @param backward   search direction (0 = forward, 1 = backward)
+     * @return           error status (0 = OK, negative values indicate errors)
+     */
+    public static native int swe_sol_eclipse_when_loc(double tjd_start, int ifl, double[] geopos, double[] tret, double[] attr, int backward);
+    
+    /**
+     * Finds the next lunar occultation for a specific location.
+     * 
+     * @param tjd_start  start time for search (Julian day in Ephemeris/DeltaT time)
+     * @param ipl        planet number of occulting body (use SE_* constants)
+     * @param starname   name of the occulted star
+     * @param ifl        calculation flags (bit flags using SEFLG_* constants)
+     * @param geopos     geographic position [longitude, latitude]
+     * @param tret       output array that will contain the occultation times
+     * @param attr       output array that will contain the occultation attributes
+     * @param backward   search direction (0 = forward, 1 = backward)
+     * @return           error status (0 = OK, negative values indicate errors)
+     */
+    public static native int swe_lun_occult_when_loc(double tjd_start, int ipl, String starname, int ifl, double[] geopos, double[] tret, double[] attr, int backward);
+    
+    /**
+     * Finds the next global solar eclipse.
+     * 
+     * @param tjd_start  start time for search (Julian day in Ephemeris/DeltaT time)
+     * @param ifl        calculation flags (bit flags using SEFLG_* constants)
+     * @param ifltype    eclipse type filter (0 = any, SE_ECL_TOTAL, SE_ECL_ANNULAR, etc.)
+     * @param tret       output array that will contain the eclipse times
+     * @param backward   search direction (0 = forward, 1 = backward)
+     * @return           error status (0 = OK, negative values indicate errors)
+     */
+    public static native int swe_sol_eclipse_when_glob(double tjd_start, int ifl, int ifltype, double[] tret, int backward);
+    
+    /**
+     * Finds the next global lunar occultation.
+     * 
+     * @param tjd_start  start time for search (Julian day in Ephemeris/DeltaT time)
+     * @param ipl        planet number of occulting body (use SE_* constants)
+     * @param starname   name of the occulted star
+     * @param ifl        calculation flags (bit flags using SEFLG_* constants)
+     * @param ifltype    occultation type filter (0 = any, SE_ECL_TOTAL, etc.)
+     * @param tret       output array that will contain the occultation times
+     * @param backward   search direction (0 = forward, 1 = backward)
+     * @return           error status (0 = OK, negative values indicate errors)
+     */
+    public static native int swe_lun_occult_when_glob(double tjd_start, int ipl, String starname, int ifl, int ifltype, double[] tret, int backward);
+    
+    /**
+     * Calculates attributes of a lunar eclipse for a given time and location.
+     * 
+     * @param tjd_ut  Julian day in Universal Time
+     * @param ifl     calculation flags (bit flags using SEFLG_* constants)
+     * @param geopos  geographic position [longitude, latitude]
+     * @param attr    output array that will contain the eclipse attributes
+     * @return        error status (0 = OK, negative values indicate errors)
+     */
+    public static native int swe_lun_eclipse_how(double tjd_ut, int ifl, double[] geopos, double[] attr);
+    
+    /**
+     * Finds the next lunar eclipse.
+     * 
+     * @param tjd_start  start time for search (Julian day in Ephemeris/DeltaT time)
+     * @param ifl        calculation flags (bit flags using SEFLG_* constants)
+     * @param ifltype    eclipse type filter (0 = any, SE_ECL_TOTAL, SE_ECL_PENUMBRAL, etc.)
+     * @param tret       output array that will contain the eclipse times
+     * @param backward   search direction (0 = forward, 1 = backward)
+     * @return           error status (0 = OK, negative values indicate errors)
+     */
+    public static native int swe_lun_eclipse_when(double tjd_start, int ifl, int ifltype, double[] tret, int backward);
+    
+    /**
+     * Finds the next lunar eclipse for a specific location.
+     * 
+     * @param tjd_start  start time for search (Julian day in Ephemeris/DeltaT time)
+     * @param ifl        calculation flags (bit flags using SEFLG_* constants)
+     * @param geopos     geographic position [longitude, latitude]
+     * @param tret       output array that will contain the eclipse times
+     * @param attr       output array that will contain the eclipse attributes
+     * @param backward   search direction (0 = forward, 1 = backward)
+     * @return           error status (0 = OK, negative values indicate errors)
+     */
+    public static native int swe_lun_eclipse_when_loc(double tjd_start, int ifl, double[] geopos, double[] tret, double[] attr, int backward); 
+    /**
+     * Calculates heliacal risings and settings of planets and stars.
+     * 
+     * @param tjdstart_ut start time for search (Julian day in Universal Time)
+     * @param geopos      geographic position [longitude, latitude, height]
+     * @param datm        atmospheric conditions [pressure, temperature, relative humidity]
+     * @param dobs        observer data [age, height, eye type]
+     * @param ObjectName  name of the object (planet or fixed star)
+     * @param TypeEvent   type of event (SE_HELIACAL_RISING, SE_HELIACAL_SETTING, etc.)
+     * @param iflag       calculation flags (bit flags using SEFLG_* constants)
+     * @param dret        output array that will contain the event data
+     * @return            error status (0 = OK, negative values indicate errors)
+     */
+    public static native int swe_heliacal_ut(double tjdstart_ut, double[] geopos, double[] datm, double[] dobs, String ObjectName, int TypeEvent, int iflag, double[] dret);
+    
+    /**
+     * Calculates heliacal phenomena data for a given time.
+     * 
+     * @param tjd_ut     Julian day in Universal Time
+     * @param geopos     geographic position [longitude, latitude, height]
+     * @param datm       atmospheric conditions [pressure, temperature, relative humidity]
+     * @param dobs       observer data [age, height, eye type]
+     * @param ObjectName name of the object (planet or fixed star)
+     * @param TypeEvent  type of event (SE_HELIACAL_RISING, SE_HELIACAL_SETTING, etc.)
+     * @param helflag    calculation flags for heliacal events
+     * @param darr       output array that will contain the event data
+     * @return           error status (0 = OK, negative values indicate errors)
+     */
+    public static native int swe_heliacal_pheno_ut(double tjd_ut, double[] geopos, double[] datm, double[] dobs, String ObjectName, int TypeEvent, int helflag, double[] darr);
+    
+    /**
+     * Calculates the limiting visual magnitude for a given time and location.
+     * 
+     * @param tjdut      Julian day in Universal Time
+     * @param geopos     geographic position [longitude, latitude, height]
+     * @param datm       atmospheric conditions [pressure, temperature, relative humidity]
+     * @param dobs       observer data [age, height, eye type]
+     * @param ObjectName name of the object (planet or fixed star)
+     * @param helflag    calculation flags for heliacal events
+     * @param dret       output array that will contain the magnitude data
+     * @return           error status (0 = OK, negative values indicate errors)
+     */
+    public static native int swe_vis_limit_mag(double tjdut, double[] geopos, double[] datm, double[] dobs, String ObjectName, int helflag, double[] dret);
+    
+    /**
+     * Calculates the arcus visionis (arc of visibility) for heliacal events.
+     * 
+     * @param tjdut    Julian day in Universal Time
+     * @param dgeo     geographic position [longitude, latitude, height]
+     * @param datm     atmospheric conditions [pressure, temperature, relative humidity]
+     * @param dobs     observer data [age, height, eye type]
+     * @param helflag  calculation flags for heliacal events
+     * @param mag      magnitude of the object
+     * @param azi_obj  azimuth of the object in degrees
+     * @param azi_sun  azimuth of the sun in degrees
+     * @param azi_moon azimuth of the moon in degrees
+     * @param alt_moon altitude of the moon in degrees
+     * @param dret     output array that will contain the angle data
+     * @return         error status (0 = OK, negative values indicate errors)
+     */
+    public static native int swe_heliacal_angle(double tjdut, double[] dgeo, double[] datm, double[] dobs, int helflag, double mag, double azi_obj, double azi_sun, double azi_moon, double alt_moon, double[] dret);
+    
+    /**
+     * Calculates the arcus visionis (arc of visibility) with topographic corrections.
+     * 
+     * @param tjdut    Julian day in Universal Time
+     * @param dgeo     geographic position [longitude, latitude, height]
+     * @param datm     atmospheric conditions [pressure, temperature, relative humidity]
+     * @param dobs     observer data [age, height, eye type]
+     * @param helflag  calculation flags for heliacal events
+     * @param mag      magnitude of the object
+     * @param azi_obj  azimuth of the object in degrees
+     * @param alt_obj  altitude of the object in degrees
+     * @param azi_sun  azimuth of the sun in degrees
+     * @param azi_moon azimuth of the moon in degrees
+     * @param alt_moon altitude of the moon in degrees
+     * @param dret     output array that will contain the angle data
+     * @return         error status (0 = OK, negative values indicate errors)
+     */
+    public static native int swe_topo_arcus_visionis(double tjdut, double[] dgeo, double[] datm, double[] dobs, int helflag, double mag, double azi_obj, double alt_obj, double azi_sun, double azi_moon, double alt_moon, double[] dret);
+    
+    /**
+     * Sets the astronomical models to be used for calculations.
+     * 
+     * @param samod  string containing the model specifications
+     * @param iflag  flags specifying which models to set
+     */
+    public static native void swe_set_astro_models(String samod, int iflag);
+    
+    /**
+     * Gets the current astronomical models being used for calculations.
+     * 
+     * @param samod  buffer to store the model specifications
+     * @param iflag  flags specifying which models to get
+     * @return       string containing the model specifications
+     */
+    public static native String swe_get_astro_models(String samod, int iflag); 
 
+    /**
+     * Converts a calendar date to Julian day with timezone handling.
+     * 
+     * @param y      year
+     * @param m      month (1-12)
+     * @param d      day of month (1-31)
+     * @param utime  time of day in decimal hours (0-24)
+     * @param c      timezone specifier ('g' or 'l' for UTC, 'z' for local time)
+     * @param tjd    output array that will contain the Julian day
+     * @return       error status (0 = OK, negative values indicate errors)
+     */
     public static native int swe_date_conversion(int y, int m, int d, double utime, char c, double[] tjd);
+    
+    /**
+     * Converts calendar date and time to Julian day.
+     * 
+     * @param year     year (e.g., 2023)
+     * @param month    month (1-12)
+     * @param day      day of month (1-31)
+     * @param hour     hour of day (0-23) with decimal fractions
+     * @param gregflag calendar system (SE_JUL_CAL or SE_GREG_CAL)
+     * @return         Julian day as a double
+     */
     public static native double swe_julday(int year, int month, int day, double hour, int gregflag);
+    
+    /**
+     * Converts a Julian day to calendar date and time.
+     * 
+     * @param jd      Julian day to convert
+     * @param gregflag calendar system (SE_JUL_CAL or SE_GREG_CAL)
+     * @param jyear   output array for year
+     * @param jmon    output array for month (1-12)
+     * @param jday    output array for day of month (1-31)
+     * @param jut     output array for time of day in decimal hours (0-24)
+     */
     public static native void swe_revjul(double jd, int gregflag, int[] jyear, int[] jmon, int[] jday, double[] jut);
-    public static native int swe_utc_to_jd(int iyear, int imonth, int iday, int ihour, int imin, double dsec, int gregflag, double[] dret); // Removed char[] serr
+    
+    /**
+     * Converts UTC date and time to Julian day in UT and ET/TT.
+     * 
+     * @param iyear    year
+     * @param imonth   month (1-12)
+     * @param iday     day of month (1-31)
+     * @param ihour    hour (0-23)
+     * @param imin     minute (0-59)
+     * @param dsec     seconds with decimal fractions
+     * @param gregflag calendar system (SE_JUL_CAL or SE_GREG_CAL)
+     * @param dret     output array [0] = Julian day in UT, [1] = Julian day in ET/TT
+     * @return         error status (0 = OK, negative values indicate errors)
+     */
+    public static native int swe_utc_to_jd(int iyear, int imonth, int iday, int ihour, int imin, double dsec, int gregflag, double[] dret);
+    
+    /**
+     * Converts Julian day in ET/TT to UTC date and time.
+     * 
+     * @param tjd_et  Julian day in Ephemeris Time (ET/TT)
+     * @param gregflag calendar system (SE_JUL_CAL or SE_GREG_CAL)
+     * @param iyear   output array for year
+     * @param imonth  output array for month (1-12)
+     * @param iday    output array for day of month (1-31)
+     * @param ihour   output array for hour (0-23)
+     * @param imin    output array for minute (0-59)
+     * @param dsec    output array for seconds with decimal fractions
+     */
     public static native void swe_jdet_to_utc(double tjd_et, int gregflag, int[] iyear, int[] imonth, int[] iday, int[] ihour, int[] imin, double[] dsec);
+    
+    /**
+     * Converts Julian day in UT to UTC date and time.
+     * 
+     * @param tjd_ut  Julian day in Universal Time (UT)
+     * @param gregflag calendar system (SE_JUL_CAL or SE_GREG_CAL)
+     * @param iyear   output array for year
+     * @param imonth  output array for month (1-12)
+     * @param iday    output array for day of month (1-31)
+     * @param ihour   output array for hour (0-23)
+     * @param imin    output array for minute (0-59)
+     * @param dsec    output array for seconds with decimal fractions
+     */
     public static native void swe_jdut1_to_utc(double tjd_ut, int gregflag, int[] iyear, int[] imonth, int[] iday, int[] ihour, int[] imin, double[] dsec);
+    
+    /**
+     * Converts between timezones for a given UTC date and time.
+     * 
+     * @param iyear      input year
+     * @param imonth     input month (1-12)
+     * @param iday       input day of month (1-31)
+     * @param ihour      input hour (0-23)
+     * @param imin       input minute (0-59)
+     * @param dsec       input seconds with decimal fractions
+     * @param d_timezone timezone offset in hours (positive east of UTC)
+     * @param iyear_out  output array for year
+     * @param imonth_out output array for month (1-12)
+     * @param iday_out   output array for day of month (1-31)
+     * @param ihour_out  output array for hour (0-23)
+     * @param imin_out   output array for minute (0-59)
+     * @param dsec_out   output array for seconds with decimal fractions
+     */
     public static native void swe_utc_time_zone(int iyear, int imonth, int iday, int ihour, int imin, double dsec, double d_timezone, int[] iyear_out, int[] imonth_out, int[] iday_out, int[] ihour_out, int[] imin_out, double[] dsec_out);
 
     public static native double swe_deltat(double tjd);
-    public static native double swe_deltat_ex(double tjd); // Removed char[] serr
-    public static native int swe_time_equ(double tjd, double[] te); // Removed char[] serr
-    public static native int swe_lmt_to_lat(double tjd_lmt, double geolon, double[] tjd_lat); // Removed char[] serr
-    public static native int swe_lat_to_lmt(double tjd_lat, double geolon, double[] tjd_lmt); // Removed char[] serr
+    public static native double swe_deltat_ex(double tjd); 
+    public static native int swe_time_equ(double tjd, double[] te); 
+    public static native int swe_lmt_to_lat(double tjd_lmt, double geolon, double[] tjd_lat); 
+    public static native int swe_lat_to_lmt(double tjd_lat, double geolon, double[] tjd_lmt); 
     public static native double swe_sidtime0(double tjd_ut, double eps, double nut);
     public static native double swe_sidtime(double tjd_ut);
     public static native void swe_set_interpolate_nut(boolean do_interpolate);
@@ -247,18 +716,40 @@ public class Swisseph {
     public static native double swe_deg_midp(double x1, double x0);
     public static native void swe_split_deg(double ddeg, int roundflag, int[] ideg, int[] imin, int[] isec, double[] dsecfr, int[] isgn);
     public static native int swe_day_of_week(double jd);
-    public static native String swe_cs2timestr(int t, int sep, boolean suppressZero); // Removed char[] a
-    public static native String swe_cs2lonlatstr(int t, char pchar, char mchar); // Removed char[] s
-    public static native String swe_cs2degstr(int t); // Removed char[] a
+    public static native String swe_cs2timestr(int t, int sep, boolean suppressZero); 
+    public static native String swe_cs2lonlatstr(int t, char pchar, char mchar); 
+    public static native String swe_cs2degstr(int t); 
 
+    /**
+     * Calculates house cusps and other house system data.
+     * 
+     * @param tjd_ut  Julian day in Universal Time
+     * @param geolat  geographic latitude in degrees (-90 to +90)
+     * @param geolon  geographic longitude in degrees (-180 to +180, east is positive)
+     * @param hsys    house system code (e.g., 'P' for Placidus, 'K' for Koch)
+     * @param cusps   output array for house cusps (must have length >= 13)
+     * @param ascmc   output array for special points like MC, ASC, etc. (must have length >= 10)
+     * @return        error status (0 = OK, negative values indicate errors)
+     */
     public static native int swe_houses(double tjd_ut, double geolat, double geolon, int hsys, double[] cusps, double[] ascmc);
     public static native int swe_houses_ex(double tjd_ut, int iflag, double geolat, double geolon, int hsys, double[] cusps, double[] ascmc);
-    public static native int swe_houses_ex2(double tjd_ut, int iflag, double geolat, double geolon, int hsys, double[] cusps, double[] ascmc, double[] cusp_speed, double[] ascmc_speed); // Removed char[] serr
+    public static native int swe_houses_ex2(double tjd_ut, int iflag, double geolat, double geolon, int hsys, double[] cusps, double[] ascmc, double[] cusp_speed, double[] ascmc_speed); 
     public static native int swe_houses_armc(double armc, double geolat, double eps, int hsys, double[] cusps, double[] ascmc);
-    public static native int swe_houses_armc_ex2(double armc, double geolat, double eps, int hsys, double[] cusps, double[] ascmc, double[] cusp_speed, double[] ascmc_speed); // Removed char[] serr
-    public static native double swe_house_pos(double armc, double geolat, double eps, int hsys, double[] xpin); // Removed char[] serr
+    public static native int swe_houses_armc_ex2(double armc, double geolat, double eps, int hsys, double[] cusps, double[] ascmc, double[] cusp_speed, double[] ascmc_speed); 
+    public static native double swe_house_pos(double armc, double geolat, double eps, int hsys, double[] xpin); 
+    /**
+     * Returns the name of the house system corresponding to the given house system code.
+     *
+     * @param hsys the house system code (e.g., 'P' for Placidus, 'K' for Koch)
+     * @return the name of the house system as a String
+     */
     public static native String swe_house_name(int hsys);
 
+    /**
+     * Returns the version string of the Swiss Ephemeris library.
+     *
+     * @return the version string in the format "2.10.03"
+     */
     public static native String swe_version();
 
     static {
