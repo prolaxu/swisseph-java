@@ -200,8 +200,7 @@ Contributions are welcome! Please:
 ## Support
 
 - 🐛 [Report Issues](https://github.com/prolaxu/swisseph-java/issues)
-- 💬 [Discussions](https://github.com/prolaxu/swisseph-java/discussions)
-- 📧 Contact: [Your Email]
+- 💬 [Discussions](https://groups.io/g/swisseph)
 
 ## Credits
 
