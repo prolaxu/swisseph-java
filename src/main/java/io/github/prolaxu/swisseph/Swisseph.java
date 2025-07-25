@@ -1,5 +1,42 @@
+/*
+ * @(#)Swisseph.java
+ *
+ * Swiss Ephemeris JNI Wrapper
+ * Copyright (C) 2023 Prolaxu. All rights reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * For more information about this project, visit:
+ * https://github.com/prolaxu/swisseph-java
+ */
+
 package io.github.prolaxu.swisseph;
 
+/**
+ * Main class providing JNI bindings to the Swiss Ephemeris C library.
+ * 
+ * <p>This class serves as the primary interface between Java applications and the Swiss Ephemeris
+ * astronomical calculation library. It provides access to high-precision planetary positions,
+ * house calculations, eclipse predictions, and other astronomical computations.</p>
+ * 
+ * <p><b>Note:</b> This is a JNI wrapper around the Swiss Ephemeris C library. The native
+ * library must be properly installed and accessible in the system library path.</p>
+ *
+ * @version 2.10.03
+ * @see <a href="https://www.astro.com/swisseph/">Swiss Ephemeris</a>
+ * @see <a href="https://github.com/prolaxu/swisseph-java">GitHub Repository</a>
+ */
 public class Swisseph {
     public static final int SE_SUN = 0;
     public static final int SE_MOON = 1;

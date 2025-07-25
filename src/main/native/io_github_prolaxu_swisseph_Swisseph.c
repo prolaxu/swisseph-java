@@ -1,8 +1,36 @@
+/*
+ * io_github_prolaxu_swisseph_Swisseph.c
+ *
+ * JNI implementation for Swiss Ephemeris Java wrapper
+ * Copyright (C) 2023 Prolaxu. All rights reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * This file implements the JNI bindings for the Swiss Ephemeris library,
+ * providing Java applications with access to high-precision astronomical
+ * calculations. The native methods declared in the Swisseph Java class
+ * are implemented here to bridge between Java and the Swiss Ephemeris C library.
+ *
+ * For more information about this project, visit:
+ * https://github.com/prolaxu/swisseph-java
+ */
+
 #include <jni.h>
 #include "sweph.h"
 #include "swephexp.h"
-#include "sweodef.h" // For AS_MAXCH
-#include <string.h>  // For strcpy, strlen, strncpy
+#include "sweodef.h" /* For AS_MAXCH */
+#include <string.h>  /* For strcpy, strlen, strncpy */
 
 static char global_serr_buf[AS_MAXCH + 1]; // Global buffer for error messages
 
