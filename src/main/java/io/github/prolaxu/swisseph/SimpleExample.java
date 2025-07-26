@@ -28,7 +28,7 @@ public class SimpleExample {
 
         // Set ephemeris path and sidereal mode
         Swisseph.swe_set_ephe_path("ephe");
-        Swisseph.swe_set_sid_mode(Swisseph.SE_SIDM_LAHIRI, 0.0, 0.0);
+        Swisseph.swe_set_sid_mode(Swisseph.SE_SIDM_KRISHNAMURTI_VP291, 0.0, 0.0);
 
         // Birth details: 2025-01-01 05:00:54 AM in Kathmandu (UTC+5:45)
         int year = 2025, month = 1, day = 1, hour = 5, minute = 0;
@@ -70,7 +70,6 @@ public class SimpleExample {
             return;
         }
 
-
         // Print birth chart header
         System.out.println("========================================");
         System.out.println("        BIRTH CHART CALCULATION         ");
@@ -78,7 +77,7 @@ public class SimpleExample {
         System.out.printf("Date   : %04d-%02d-%02d%n", year, month, day);
         System.out.printf("Time   : %02d:%02d NPT (UTC+5:45)%n", hour, minute);
         System.out.printf("Place  : Kathmandu, Nepal (%.4f°N, %.4f°E)%n", KATHMANDU_LAT, KATHMANDU_LON);
-        System.out.println("Ayanamsa: Lahiri - " + Swisseph.swe_get_ayanamsa_ut(jd));
+        System.out.println("Ayanamsa:  - " + Swisseph.swe_get_ayanamsa_ut(jd));
         System.out.println("========================================\n");
 
         // Calculate and print planetary positions
@@ -122,7 +121,7 @@ public class SimpleExample {
             
         // Print Ayanamsa
         double ayanamsa = Swisseph.swe_get_ayanamsa_ut(jd);
-        System.out.printf("\nAyanamsa: %.6f° (Lahiri)\n", ayanamsa);
+        System.out.printf("\nAyanamsa: %.6f° \n", ayanamsa);
         
         // Clean up
         Swisseph.swe_close();
